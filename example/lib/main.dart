@@ -20,6 +20,7 @@ class _MyAppState extends State<MyApp> {
   bool _loading = false;
   String? _error;
   final _appManagerPlugin = AppManagerPlugin();
+  bool _includeSystemApps = true; // State variable for the toggle
 
   @override
   void initState() {
@@ -40,7 +41,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle potential null returns or other exceptions.
     try {
-      apps = await _appManagerPlugin.getInstalledApps();
+      apps = await _appManagerPlugin.getInstalledApps(
+          includeSystemApps: _includeSystemApps);
     } on PlatformException catch (e) {
       _error = "Failed to get apps: '${e.message}'.";
     } catch (e) {
@@ -70,6 +72,25 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: CheckboxListTile(
+                title: const Text("Include System Apps"),
+                value: _includeSystemApps,
+                onChanged: (bool? value) {
+                  if (value != null) {
+                    setState(() {
+                      _includeSystemApps = value;
+                    });
+                    // Optionally re-fetch apps automatically when the toggle changes
+                    // _fetchInstalledApps();
+                  }
+                },
+                dense: true,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(

@@ -7,7 +7,9 @@ class AppManagerPlugin {
     return AppManagerPluginPlatform.instance.getPlatformVersion();
   }
 
-  Future<List<Map<String, dynamic>>?> getInstalledApps() {
-    return AppManagerPluginPlatform.instance.getInstalledApps();
+  Future<List<Map<String, dynamic>>?> getInstalledApps(
+      {bool includeSystemApps = true}) {
+    return AppManagerPluginPlatform.instance
+        .getInstalledApps(includeSystemApps: includeSystemApps);
   }
 }

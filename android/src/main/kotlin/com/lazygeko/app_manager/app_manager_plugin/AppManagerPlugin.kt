@@ -42,7 +42,9 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
           result.success("Android ${android.os.Build.VERSION.RELEASE}")
         }
         "getInstalledApps" -> {
-          getInstalledApps(result)
+          // Read the argument, default to true if not provided or wrong type
+          val includeSystemApps = call.argument<Boolean>("includeSystemApps") ?: true
+          getInstalledApps(result, includeSystemApps)
         }
         else -> {
           result.notImplemented()
@@ -50,17 +52,18 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
     }
   }
 
-  private fun getInstalledApps(result: Result) {
+  private fun getInstalledApps(result: Result, includeSystemApps: Boolean) {
     try {
       val pm: PackageManager = context.packageManager
-      // Get all installed applications (including system apps)
-      // Use PackageManager.GET_META_DATA flag if you need metadata
+      // Get all installed applications
       val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
       val appList = mutableListOf<Map<String, Any?>>()
 
       for (packageInfo in packages) {
-        // Optionally filter out system apps:
-        // if ((packageInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0) {
+        val isSystemApp = (packageInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+
+        // Filter based on the flag
+        if (includeSystemApps || !isSystemApp) {
             val appInfo = mutableMapOf<String, Any?>()
             appInfo["app_name"] = packageInfo.loadLabel(pm).toString()
             appInfo["package_name"] = packageInfo.packageName
@@ -76,8 +79,9 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
              // Add more info as needed, e.g., icon
             appInfo["icon"] = getEncodedIcon(pm, packageInfo.packageName)
             appList.add(appInfo)
-        // }
+        }
       }
+      Log.d(TAG, "Returning ${appList.size} apps (includeSystemApps=$includeSystemApps)")
       result.success(appList)
     } catch (e: Exception) {
         result.error("getInstalledAppsFailed", "Failed to get installed apps: ${e.message}", null)

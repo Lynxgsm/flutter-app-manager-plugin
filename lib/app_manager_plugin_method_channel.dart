@@ -17,9 +17,12 @@ class MethodChannelAppManagerPlugin extends AppManagerPluginPlatform {
   }
 
   @override
-  Future<List<Map<String, dynamic>>?> getInstalledApps() async {
-    final List<dynamic>? apps =
-        await methodChannel.invokeMethod<List<dynamic>>('getInstalledApps');
+  Future<List<Map<String, dynamic>>?> getInstalledApps(
+      {bool includeSystemApps = true}) async {
+    final List<dynamic>? apps = await methodChannel.invokeMethod<List<dynamic>>(
+      'getInstalledApps',
+      {'includeSystemApps': includeSystemApps},
+    );
     // The result from Kotlin is List<Map<String, Any?>>.
     // We need to cast it carefully to List<Map<String, dynamic>> for Dart.
     return apps?.map((app) => Map<String, dynamic>.from(app as Map)).toList();
