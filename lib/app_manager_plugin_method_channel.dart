@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'app_manager_plugin_platform_interface.dart';
+import 'src/models/installed_app.dart';
 
 /// An implementation of [AppManagerPluginPlatform] that uses method channels.
 class MethodChannelAppManagerPlugin extends AppManagerPluginPlatform {
@@ -17,14 +18,17 @@ class MethodChannelAppManagerPlugin extends AppManagerPluginPlatform {
   }
 
   @override
-  Future<List<Map<String, dynamic>>?> getInstalledApps(
+  Future<List<InstalledApp>?> getInstalledApps(
       {bool includeSystemApps = true}) async {
-    final List<dynamic>? apps = await methodChannel.invokeMethod<List<dynamic>>(
+    final List<dynamic>? rawApps =
+        await methodChannel.invokeMethod<List<dynamic>>(
       'getInstalledApps',
       {'includeSystemApps': includeSystemApps},
     );
-    // The result from Kotlin is List<Map<String, Any?>>.
-    // We need to cast it carefully to List<Map<String, dynamic>> for Dart.
-    return apps?.map((app) => Map<String, dynamic>.from(app as Map)).toList();
+    // Now map the raw list of maps to a list of InstalledApp objects.
+    return rawApps
+        ?.map((app) =>
+            InstalledApp.fromMap(Map<String, dynamic>.from(app as Map)))
+        .toList();
   }
 }

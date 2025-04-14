@@ -1,6 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'app_manager_plugin_method_channel.dart';
+import 'src/models/installed_app.dart';
 
 abstract class AppManagerPluginPlatform extends PlatformInterface {
   /// Constructs a AppManagerPluginPlatform.
@@ -27,7 +28,7 @@ abstract class AppManagerPluginPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<List<Map<String, dynamic>>?> getInstalledApps(
+  Future<List<InstalledApp>?> getInstalledApps(
       {bool includeSystemApps = true}) {
     throw UnimplementedError('getInstalledApps() has not been implemented.');
   }

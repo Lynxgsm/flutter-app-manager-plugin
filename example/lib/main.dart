@@ -16,7 +16,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  List<Map<String, dynamic>>? _apps = [];
+  List<InstalledApp>? _apps = [];
   bool _loading = false;
   String? _error;
   final _appManagerPlugin = AppManagerPlugin();
@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
       _apps = []; // Clear previous results
     });
 
-    List<Map<String, dynamic>>? apps;
+    List<InstalledApp>? apps;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle potential null returns or other exceptions.
     try {
@@ -111,15 +111,13 @@ class _MyAppState extends State<MyApp> {
                 child: ListView.builder(
                   itemCount: _apps!.length,
                   itemBuilder: (context, index) {
-                    final app = _apps![index];
-                    final appName = app['app_name'] ?? 'Unknown App';
-                    final packageName =
-                        app['package_name'] ?? 'Unknown Package';
-                    final versionName = app['version_name'] ?? 'N/A';
-                    final versionCode = app['version_code']?.toString() ??
-                        'N/A'; // Ensure versionCode is string
-                    final String? iconBase64 =
-                        app['icon'] as String?; // Get icon string
+                    final InstalledApp app = _apps![index];
+                    final String appName = app.appName;
+                    final String packageName = app.packageName;
+                    final String versionName = app.versionName ?? 'N/A';
+                    final String versionCode =
+                        app.versionCode?.toString() ?? 'N/A';
+                    final String? iconBase64 = app.icon;
 
                     return ListTile(
                       leading: AppIconWidget(

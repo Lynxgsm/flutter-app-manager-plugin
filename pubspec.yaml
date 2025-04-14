@@ -1,7 +1,6 @@
 name: app_manager_plugin
-description: 'A new Flutter plugin project.'
+description: A Flutter plugin to list installed applications on Android devices, including app name, package name, version, and icon. Provides an option to include or exclude system apps.
 version: 0.0.1
-homepage: www
 
 environment:
   sdk: ^3.6.1
@@ -11,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  equatable: ^2.0.5
+  meta: ^1.7.0
 
 dev_dependencies:
   flutter_test:
