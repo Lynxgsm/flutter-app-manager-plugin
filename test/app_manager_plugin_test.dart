@@ -13,15 +13,23 @@ class MockAppManagerPluginPlatform
   String? _expectedPlatformVersion;
   List<Map<String, dynamic>>? _expectedApps;
   bool? _expectedIncludeSystemApps;
+  List<String>? _expectedWithPermissions;
+  bool? _expectedMatchAll;
 
   void setExpectedPlatformVersion(String version) {
     _expectedPlatformVersion = version;
   }
 
-  void setExpectedApps(List<Map<String, dynamic>>? apps,
-      {bool? includeSystemApps}) {
+  void setExpectedApps(
+    List<Map<String, dynamic>>? apps, {
+    bool? includeSystemApps,
+    List<String>? withPermissions,
+    bool? matchAll,
+  }) {
     _expectedApps = apps;
     _expectedIncludeSystemApps = includeSystemApps;
+    _expectedWithPermissions = withPermissions;
+    _expectedMatchAll = matchAll;
   }
 
   @override
@@ -30,11 +38,20 @@ class MockAppManagerPluginPlatform
   }
 
   @override
-  Future<List<InstalledApp>?> getInstalledApps(
-      {bool includeSystemApps = true}) async {
+  Future<List<InstalledApp>?> getInstalledApps({
+    bool includeSystemApps = true,
+    List<String>? withPermissions,
+    bool matchAll = false,
+  }) async {
     // Verify if the expected parameter was passed (if set)
     if (_expectedIncludeSystemApps != null) {
       expect(includeSystemApps, _expectedIncludeSystemApps);
+    }
+    if (_expectedWithPermissions != null) {
+      expect(withPermissions, _expectedWithPermissions);
+    }
+    if (_expectedMatchAll != null) {
+      expect(matchAll, _expectedMatchAll);
     }
     if (_expectedApps == null) {
       return null;
@@ -138,6 +155,46 @@ void main() {
       final result = await plugin.getInstalledApps(includeSystemApps: false);
       expect(result, isA<List<InstalledApp>>());
       expect(result, equals(expectedAppListFiltered));
+    });
+
+    test('normalizes AndroidPermission enums and passes matchAll', () async {
+      // Expect normalized manifest strings
+      mockPlatform.setExpectedApps(
+        mockAppMapList,
+        includeSystemApps: true,
+        withPermissions: [
+          'android.permission.POST_NOTIFICATIONS',
+          'android.permission.CAMERA',
+        ],
+        matchAll: true,
+      );
+
+      final result = await plugin.getInstalledApps(
+        withPermissions: [
+          AndroidPermission.notifications,
+          AndroidPermission.camera,
+        ],
+        matchAll: true,
+      );
+      expect(result, equals(expectedAppList));
+    });
+
+    test('accepts mixed enums and raw strings', () async {
+      mockPlatform.setExpectedApps(
+        mockAppMapList,
+        withPermissions: [
+          'android.permission.POST_NOTIFICATIONS',
+          'android.permission.RECORD_AUDIO',
+        ],
+      );
+
+      final result = await plugin.getInstalledApps(
+        withPermissions: [
+          AndroidPermission.notifications,
+          'android.permission.RECORD_AUDIO',
+        ],
+      );
+      expect(result, equals(expectedAppList));
     });
 
     test('returns null when platform returns null', () async {

@@ -18,12 +18,19 @@ class MethodChannelAppManagerPlugin extends AppManagerPluginPlatform {
   }
 
   @override
-  Future<List<InstalledApp>?> getInstalledApps(
-      {bool includeSystemApps = true}) async {
+  Future<List<InstalledApp>?> getInstalledApps({
+    bool includeSystemApps = true,
+    List<String>? withPermissions,
+    bool matchAll = false,
+  }) async {
     final List<dynamic>? rawApps =
         await methodChannel.invokeMethod<List<dynamic>>(
       'getInstalledApps',
-      {'includeSystemApps': includeSystemApps},
+      {
+        'includeSystemApps': includeSystemApps,
+        if (withPermissions != null) 'withPermissions': withPermissions,
+        'matchAll': matchAll,
+      },
     );
     // Now map the raw list of maps to a list of InstalledApp objects.
     return rawApps

@@ -28,8 +28,11 @@ abstract class AppManagerPluginPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<List<InstalledApp>?> getInstalledApps(
-      {bool includeSystemApps = true}) {
+  Future<List<InstalledApp>?> getInstalledApps({
+    bool includeSystemApps = true,
+    List<String>? withPermissions,
+    bool matchAll = false,
+  }) {
     throw UnimplementedError('getInstalledApps() has not been implemented.');
   }
 }

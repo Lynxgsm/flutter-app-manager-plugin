@@ -44,7 +44,9 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
         "getInstalledApps" -> {
           // Read the argument, default to true if not provided or wrong type
           val includeSystemApps = call.argument<Boolean>("includeSystemApps") ?: true
-          getInstalledApps(result, includeSystemApps)
+          val withPermissions = call.argument<List<String>>("withPermissions")
+          val matchAll = call.argument<Boolean>("matchAll") ?: false
+          getInstalledApps(result, includeSystemApps, withPermissions, matchAll)
         }
         else -> {
           result.notImplemented()
@@ -52,7 +54,12 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
     }
   }
 
-  private fun getInstalledApps(result: Result, includeSystemApps: Boolean) {
+  private fun getInstalledApps(
+    result: Result,
+    includeSystemApps: Boolean,
+    withPermissions: List<String>?,
+    matchAll: Boolean
+  ) {
     try {
       val pm: PackageManager = context.packageManager
       // Get all installed applications
@@ -64,6 +71,9 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
 
         // Filter based on the flag
         if (includeSystemApps || !isSystemApp) {
+            if (!shouldIncludePackage(pm, packageInfo.packageName, withPermissions, matchAll)) {
+                continue
+            }
             val appInfo = mutableMapOf<String, Any?>()
             appInfo["app_name"] = packageInfo.loadLabel(pm).toString()
             appInfo["package_name"] = packageInfo.packageName
@@ -86,6 +96,31 @@ class AppManagerPlugin: FlutterPlugin, MethodCallHandler {
     } catch (e: Exception) {
         result.error("getInstalledAppsFailed", "Failed to get installed apps: ${e.message}", null)
     }
+  }
+
+  private fun shouldIncludePackage(
+    pm: PackageManager,
+    packageName: String,
+    withPermissions: List<String>?,
+    matchAll: Boolean
+  ): Boolean {
+      if (withPermissions == null || withPermissions.isEmpty()) return true
+
+      return try {
+          val pkgInfo = pm.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
+          val requested: Array<String>? = pkgInfo.requestedPermissions
+          if (requested == null) return false
+
+          val requestedSet = requested.toSet()
+          if (matchAll) {
+              withPermissions.all { requestedSet.contains(it) }
+          } else {
+              withPermissions.any { requestedSet.contains(it) }
+          }
+      } catch (e: Exception) {
+          Log.e(TAG, "Error reading permissions for $packageName", e)
+          false
+      }
   }
 
 
